@@ -1,0 +1,237 @@
+use mydb;
+
+/*Question 1:  
+Imagine a table named "Movies" with columns: MovieID, Title, ReleaseDate, GenreID. There's another table "Genres" with columns:
+ GenreID, GenreName. Write a SQL query to fetch the genres that don't have any movies associated with them. */
+ 
+create table Movies(MovieID int, Title varchar(20), ReleaseDate date,GenreId int);
+
+insert into Movies(MovieId,Title,ReleaseDate,GenreId) values
+(123,'SitaRamam','2022-08-12',1),
+(124,'Police','2023-09-10',2),
+(125,'RRR','2023-08-14',4),
+(126,'Shetty','2021-07-06',5);
+
+create table Genres(GenreID int,GenreName varchar(20));
+
+insert into Genres(GenreID,GenreName) values
+(1,'Action'),
+(4,'Romance'),
+(5,'Thriller'),
+(1,'Comedy'),
+(7,'Drama');
+
+select g.genreId,g.GenreName from Movies m right Join Genres g on m.genreid = g.genreid where m.movieid is null;
+
+/*Question 2: 
+You are given a table named "Attendance" with columns: StudentID, ClassDate, IsPresent 
+(a boolean where 1 indicates presence and 0 indicates absence). 
+Write a SQL query to identify students who have missed more than 3 consecutive classes.*/
+
+create table attendance(StudentID int, ClassDate date, IsPresent bit(1));
+
+insert into attendance(StudentID, ClassDate, IsPresent) values
+(121,'2021-08-11',1),
+(121,'2021-08-12',0),
+(122,'2021-08-13',1),
+(123,'2022-09-11',0),
+(123,'2022-09-12',0),
+(123,'2022-09-13',0);
+
+
+
+
+/*Question 3:  
+Consider a table named "Elections" with columns: CandidateID, VoterID, VoteDate. 
+Write a SQL query to calculate the candidate who received the highest number of votes each month.*/
+
+create table Elections(candidateID int, VoterId int, VoteDate date);
+
+insert into Elections(candidateID, VoterID, VoteDate) values
+(131,451,'2021-08-01'),
+(132,152,'2021-08-02'),
+(131,542,'2021-09-02'),
+(132,543,'2022-09-03');
+
+
+create table productsales(productid int,saledate date, unitssold int);
+
+insert into productsales(productid,saledate,unitssold) values
+(10,'2022-08-01',100),
+(20,'2022-08-02',200),
+(30,'2022-08-03',300),
+(40,'2022-08-04',400),
+(10,'2022-09-01',300),
+(20,'2022-09-02',400),
+(30,'2022-09-03',100),
+(40,'2022-09-04',200),
+(10,'2022-10-01',200),
+(20,'2022-10-02',300),
+(30,'2022-10-03',400),
+(40,'2022-10-04',100);
+
+with cte as (
+	select productid,saledate,unitssold, dense_rank() over(partition by month(saledate) order by unitssold desc) as ranking  
+from productsales
+)
+select * from cte where ranking <= 3;
+
+/* Other ways */
+select productid,saledate,unitssold, dense_rank() over(partition by productid order by unitssold,month(saledate)) as ranking  
+from productsales;
+
+
+create table LibraryBooks(bookid int, borrowerid int, borrowdate date, returndate date);
+
+INSERT INTO LibraryBooks (bookid, borrowerid, borrowdate, returndate)
+VALUES
+    (1, 101, '2023-09-01', '2023-09-10'),
+    (2, 102, '2023-09-02', '2023-09-12'),
+    (3, 103, '2023-09-03', '2023-09-09'),
+    (4, 104, '2023-09-04', '2023-09-11'),
+    (5, 105, '2023-09-05', '2023-09-13');
+    
+select * from LibraryBooks where returndate > '2023-09-11';
+
+create table onlinecourses(courseid int, enrollmentdate date, studentid int, completiondate date);
+
+INSERT INTO onlinecourses (courseid, enrollmentdate, studentid, completiondate)
+VALUES
+    (1, '2023-09-01', 101, '2023-09-30'),
+    (2, '2023-09-02', 102, '2023-10-05'),
+    (3, '2023-09-03', 103, '2023-09-25'),
+    (4, '2023-09-04', 104, NULL),
+    (5, '2023-09-05', 105, NULL);
+    
+select * from onlinecourses where completiondate is null;
+drop table employeefeedback;
+create table EmployeeFeedback(EmployeeId int,FeedbackDate date, Rating int);
+
+INSERT INTO EmployeeFeedback (EmployeeId, FeedbackDate, Rating)
+VALUES
+    (101, '2023-09-01', 4),
+    (102, '2023-09-02', 5),
+    (103, '2023-09-03', 3),
+    (104, '2023-09-04', 4),
+    (105, '2023-09-02', 6),
+    (105, '2023-09-03', 5),
+    (105, '2023-09-04', 4),
+    (105, '2023-09-05', 3);
+    
+/* First Way */
+with RankedFeedback as(
+	select employeeid, feedbackdate,rating,
+    lag(rating,1) over (partition by employeeid order by feedbackdate) as previousrating1,
+    lag(rating,2) over (partition by employeeid order by feedbackdate) as previousrating2
+    from employeefeedback
+)
+select distinct employeeid from rankedfeedback where rating < previousrating1 and previousrating1 < previousrating2;
+
+/* Second way */
+SELECT DISTINCT EmployeeID
+FROM (
+    SELECT EmployeeID, Rating,
+           LAG(Rating, 1) OVER (PARTITION BY EmployeeID ORDER BY FeedbackDate) AS Prev1,
+           LAG(Rating, 2) OVER (PARTITION BY EmployeeID ORDER BY FeedbackDate) AS Prev2,
+           LAG(Rating, 3) OVER (PARTITION BY EmployeeID ORDER BY FeedbackDate) AS Prev3
+    FROM EmployeeFeedback
+) AS Subquery
+WHERE Rating < Prev1 AND Prev1 < Prev2 AND Prev2 < Prev3;
+
+drop table comments;
+
+create table BlogPosts(PostId int,Title varchar(50), PostDate date, AuthorId int);
+
+create table Comments(commentid int, postid int, commentdate date,text varchar(50));
+select * from comments;
+-- Insert data into BlogPosts table
+INSERT INTO BlogPosts (PostID, Title, PostDate, AuthorID)
+VALUES
+    (1, 'Introduction to SQL', '2023-09-01', 101),
+    (2, 'Web Development Best Practices', '2023-09-05', 102),
+    (3, 'Data Visualization Techniques', '2023-09-10', 103),
+    (4, 'Machine Learning Fundamentals', '2023-09-15', 104),
+    (5, 'Cybersecurity Basics', '2023-09-20', 105);
+
+-- Insert data into Comments table
+INSERT INTO Comments (CommentID, PostID, CommentDate, Text)
+VALUES
+    (1, 1, '2023-09-02', 'Great introduction to SQL!'),
+    (2, 1, '2023-09-14', 'I found this very helpful.'),
+    (3, 2, '2023-09-06', 'Thanks for sharing these best practices.'),
+    (4, 3, '2023-09-20', 'I learned a lot about data visualization.'),
+    (5, 4, '2023-09-17', 'Machine learning is fascinating!'),
+    (6, 5, '2023-09-21', 'Cybersecurity is crucial in today''s world.');
+
+
+select * from blogposts as b inner join comments as c on b.postId = c.postid where datediff(c.commentdate,b.postdate) > 7;
+
+
+create table TouristSpots(SpotID int,SpotName varchar(30), VisitorID int,VisitDate date);
+
+-- Inserting data into the TouristSpots table
+INSERT INTO TouristSpots (SpotID, SpotName, VisitorID, VisitDate)
+VALUES
+    (1, 'Statue of Liberty', 101, '2023-01-15'),
+    (2, 'Eiffel Tower', 102, '2023-02-20'),
+    (3, 'Great Wall of China', 103, '2023-03-10'),
+    (1, 'Statue of Liberty', 104, '2023-02-15'),
+    (2, 'Eiffel Tower', 106, '2023-04-20'),
+    (3, 'Great Wall of China', 102, '2023-07-10'),
+    (4, 'Machu Picchu', 104, '2023-04-05'),
+    (5, 'Pyramids of Giza', 105, '2023-05-12'),
+	(1, 'Statue of Liberty', 106, '2023-04-15'),
+    (2, 'Eiffel Tower', 101, '2023-06-20'),
+    (6, 'Colosseum', 106, '2023-06-25'),
+    (7, 'Taj Mahal', 107, '2023-07-08'),
+    (10, 'Mount Everest', 110, '2023-10-15');
+    
+select spotid,spotname,visitorid,visitdate,count(*) from Touristspots where month(visitdate) in (6,7,8) 
+group by spotname order by count(spotname) desc;
+
+create table Books(bookid int,bookname varchar(30),authorid int,soldcopies int);
+
+-- Inserting data into the Books table
+INSERT INTO Books (BookID, BookName, AuthorID, SoldCopies)
+VALUES
+    (1, 'To Kill a Mockingbird', 101, 50000),
+    (2, '1984', 102, 75000),
+    (3, 'Pride and Prejudice', 101, 60000),
+    (4, 'The Great Gatsby', 104, 45000),
+    (5, 'The Catcher in the Rye', 105, 55000),
+    (6, 'The Sita Gatsby', 105, 45000),
+    (7, 'The Rama in the Rye', 105, 55000);
+    
+
+create table Authors(Authorid int,authorname varchar(30));
+
+-- Inserting data into the Authors table
+INSERT INTO Authors (AuthorID, AuthorName)
+VALUES
+    (101, 'Harper Lee'),
+    (102, 'George Orwell'),
+    (103, 'Jane Austen'),
+    (104, 'F. Scott Fitzgerald'),
+    (105, 'J.D. Salinger');
+    
+select * from authors;
+select * from books;
+    
+select b.bookid,b.bookname,b.authorid,b.soldcopies,a.authorname from Books as b join Authors as a 
+on b.authorid = a.authorid where soldcopies > 50000 having(authorname) < 3;
+
+create table FlightBookings(Bookingid int, FlightDate date, PassengerId int, Destination varchar(30));
+
+-- Inserting data into the FlightBookings table
+INSERT INTO FlightBookings (BookingID, FlightDate, PassengerID, Destination)
+VALUES
+    (1, '2023-01-15', 101, 'New York'),
+    (2, '2023-02-20', 102, 'Los Angeles'),
+    (3, '2023-03-10', 103, 'Chicago'),
+    (4, '2023-04-05', 104, 'San Francisco'),
+    (5, '2023-05-12', 105, 'Miami'),
+    (6, '2023-06-25', 106, 'Las Vegas'),
+    (7, '2023-07-08', 107, 'Orlando'),
+    (8, '2023-08-18', 108, 'Boston'),
+    (9, '2023-09-02', 109, 'Seattle'),
+    (10, '2023-10-15', 110, 'Denver');
