@@ -1,0 +1,30 @@
+use mydb;
+
+create table students(id int, name varchar(20), marks int);
+
+insert into students(id,name,marks)
+values
+(1,'Neha',85),
+(2,'Rama',94),
+(3,'Vishnu',34),
+(4,'Sai',67),
+(5,'Kiran',76),
+(6,'Rahul',54),
+(7,'Vishwanth',69),
+(8,'Shilpa',91);
+
+select * from students;
+
+select *,
+case
+	when marks >= 90 and marks <= 100 then 'O'
+    when marks >= 80 and marks < 90 then 'A'
+    when marks >= 70 and marks < 80 then 'B'
+    when marks >= 60 and marks < 70 then 'C'
+    when marks >= 50 and marks < 60 then 'D'
+    when marks < 50 then 'F'
+end as 'grades'
+from students;
+
+select id,name,marks from students where marks < (select avg(marks) from students);
+
