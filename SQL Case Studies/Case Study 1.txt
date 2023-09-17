@@ -1,0 +1,85 @@
+create database if not exists mydb;
+
+use mydb;
+
+CREATE TABLE demographics (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    age INT,
+    gender VARCHAR(10),
+    state VARCHAR(255),
+    country VARCHAR(255),
+    salary int
+);
+
+INSERT INTO demographics (first_name, last_name, age, gender, state, country,salary)
+VALUES
+    ('John', 'Doe', 30, 'Male',  'NY', 'USA',1000),
+    ('Jane', 'Smith', 25, 'Female',  'CA', 'USA',2000),
+    ('David', 'Johnson', 40, 'Male', 'IL', 'USA',3000),
+    ('Ram', 'Johnson', 30, 'Male', 'NY', 'USA',2400),
+    ('Krish', 'Johnson', 45, 'Female', 'IL', 'India',3500);
+
+select * from demographics;
+
+select state,round(avg(salary),0) from demographics group by state;
+
+SELECT 
+    sum(case when age < 18 then 1 else 0 end) as 'Under 18',
+    sum(case when age between 18 and 28 then 1 else 0 end) as 'Above 18 and 28 less',
+    sum(case when age between 28 and 38 then 1 else 0 end) as 'Above 28 and 38 less',
+    sum(case when age between 38 and 58 then 1 else 0 end) as 'Above 38'
+from demographics;
+
+CREATE TABLE demographics1 (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    age INT,
+    gender VARCHAR(10),
+    state VARCHAR(255),
+    country VARCHAR(255),
+    salary int
+);
+
+INSERT INTO demographics1 (first_name, last_name, age, gender, state, country,salary)
+VALUES
+    ('John', 'Doe', 30, 'Male',  'NY', 'USA',1000),
+    ('Jane', 'Smith', 25, 'Female',  'CA', 'USA',2000),
+    ('David', 'Johnson', 40, 'Male', 'IL', 'USA',3000),
+    ('Ram', 'Johnson', 30, 'Male', 'NY', 'USA',2400),
+    ('Krish', 'Johnson', 45, 'Female', 'IL', 'India',3500);
+
+select * from demographics1;
+
+select count(*),avg(salary),state,
+	case
+		when age >= 51 then 'Eldely people'
+		when age >= 41 and age <= 50 then '41-50'
+        when age >= 31 and age <= 40 then '31-40'
+        when age >= 18 and age <= 30 then '18-30'
+		when age < 18 then 'Under Age'
+	
+	end as 'AgeRange' 
+from demographics1 
+group by 
+case
+		when age >= 51 then 'Eldely people'
+		when age >= 41 and age <= 50 then '41-50'
+        when age >= 31 and age <= 40 then '31-40'
+        when age >= 18 and age <= 30 then '18-30'
+		when age < 18 then 'Under Age'
+	end,state;
+
+
+SELECT avg(Salary),count(*),gender,country,max(salary),min(salary),
+    CASE  
+      WHEN age >60  THEN '60 And Up'
+      WHEN age >=41 and age <=60 THEN '41-60'
+      WHEN age >=21 and age <=40 THEN '21-40'
+      WHEN age <=20 THEN '20 And Below' 
+    END as agerange
+  from demographics group by agerange;
+
+
